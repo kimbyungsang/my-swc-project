@@ -11,38 +11,53 @@ class ListNode{
     public ListNode(int index, String value){
         childIndex = index;
         childValue = value;
-        prev = null;
+        prev = this;
         next = null;
     }
 
 
     public ListNode append(ListNode head, int childIndex, String childValue){
-        if(head == null) {
-            ListNode node = new ListNode(childIndex, childValue);
-            head = node;
-        }else if(isHead(head.childValue, childValue)){
-            ListNode node = new ListNode(childIndex, childValue);
+        ListNode node = new ListNode(childIndex, childValue);
+        ListNode temp = findLoc(head, childValue);
+        if(temp == head) {
+            //add first
             node.next = head;
+            node.prev = head.prev;
             head.prev = node;
             head = node;
-        }else {
-            ListNode temp = find(head, childValue);
+        }else if(temp == null){
+                // add last
+            head.prev.next = node;
+            head.prev = node;
+            node.prev = head.prev;
+        }else{
+                //add in front of temp
+            node.next = temp;
+            node.prev = temp.prev;
+            temp.prev = node;
+            temp.prev.next = node;
+
         }
+
         return head;
     }
 
-    public ListNode find(ListNode head, String value){
+    public ListNode findLoc(ListNode head, String value){
         while(head != null){
-            head.childValue
+            if(isPrev(head.childValue, value))
+                return head;
+            else{
+                head = head.next;
+            }
         }
-
+        return null;
     }
 
-    public boolean isHead(String first, String second){
+    public boolean isPrev(String first, String second){
         for(int i = 0; i < first.length();i++){
-            if(first.charAt(i) > second.charAt(i))
+            if(first.charAt(i) > second.charAt(i))  // first is large
                 return true;
-            else if(first.charAt(i) < second.charAt(i)){
+            else if(first.charAt(i) < second.charAt(i)){ // first is small
                 return false;
             }
         }

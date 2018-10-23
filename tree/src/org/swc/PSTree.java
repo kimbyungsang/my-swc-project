@@ -30,20 +30,36 @@ class Tree {
         }
     }
 
+    public void printChild(ListNode head){
+        while(head != null){
+            System.out.print(head.childValue + " ");
+            head = head.next;
+        }
+        System.out.println();
+    }
 
     public int addChild(int parent, int child_index, String child_value){
         ListNode head = treenode[parent].head;
+        if(head == null){
+            ListNode node = new ListNode(child_index, child_value);
+            treenode[parent].head = node;
+            treenode[child_index].parent = parent;
+            treenode[child_index].value = child_value;
+            printChild(treenode[parent].head);
+            return parent;
+        }
         ListNode temp = head;
         while(temp != null){
             if(temp.childValue.equals(child_value)){
+                printChild(treenode[parent].head);
                 return -2;
             }
             temp = temp.next;
         }
         treenode[parent].head = head.append(head, child_index, child_value);
-        index++;
-        treenode[index].parent = parent;
-        treenode[index].value = child_value;
+        treenode[child_index].parent = parent;
+        treenode[child_index].value = child_value;
+        printChild(treenode[parent].head);
         return parent;
 
     }

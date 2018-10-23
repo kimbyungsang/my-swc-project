@@ -8,34 +8,56 @@ public class KSFSTree {
 //    public ListNode[];
     public static Tree tree;
 
-    public static int pos = 0;
+    public static int pos = 1;
     public static int current = 0;
     private static void cmd_init(){
         tree = new Tree(2000);
 
     }
 
+
     private static int cmd_mkdir(String name){
         System.out.println(count++ + " mkdir " + name);
-        int code = tree.addChild(current, pos++, name);
+        int code = tree.addChild(current, pos, name);
         if(code == -2)
             System.out.println("duplicated.!");
+        else pos += 1;
 
         return current;
     }
 
-    private static int cmd_cd(String path){
+
+    private static boolean cmd_cd(String path){
         System.out.println(count++ + " cd " + path);
         ListNode temp = tree.treenode[current].head;
         if(path.equals("0")){
-            while(temp != null){
-                System.out.print(temp.childValue + " ");
-                temp = temp.next;
+            current = temp.childIndex;
+            return true;
+        }else if(path.equals("..")){
+            if (tree.treenode[current].parent != -1)
+                return false;
+            else {
+                current = tree.treenode[current].parent;
+                return true;
             }
-        }
 
+        }else{
+            while(temp != null) {
+                for (int i = 0; i < path.length(); i++) {
+                    if (path.charAt(i) == temp.childValue.charAt(i)) {
+                        continue;
+                    }
+                    else{
+                            temp = temp.next;
+                            break;
+                        }
+                    }
+                    current = temp.childIndex;
+                     return true;
 
-        return -1;
+                }
+                return false;
+            }
     }
 
     private static int cmd_rm(String path){
