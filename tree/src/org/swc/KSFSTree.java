@@ -27,7 +27,7 @@ public class KSFSTree {
     }
 
 
-    private static boolean cmd_cd(String path){
+    private  boolean cmd_cd(String path){
         System.out.println(count++ + " cd " + path);
         ListNode temp = tree.treenode[current].head;
         if(path.equals("0")){
@@ -60,13 +60,13 @@ public class KSFSTree {
             }
     }
 
-    private static int cmd_rm(String path){
+    private  int cmd_rm(String path){
         System.out.println(count++ + " rm " + path);
 
         return -1;
     }
 
-    private static int cmd_ls(String path){
+    private  int cmd_ls(String path){
         System.out.println(count++ + " ls " + path);
 
         return -1;
