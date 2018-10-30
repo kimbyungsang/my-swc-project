@@ -1,14 +1,17 @@
 1
-0 6
+0 30
 1 selc
 1 selc2
 1 selc1
 1 selc
 2 selc
 1 sal
+2 ..
 1 zoooooo
 1 zooo
-2 selc
+4 0
+3 zooo
+3 selc
 1 kenny
 1 soft
 1 softicecream

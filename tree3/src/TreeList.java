@@ -1,9 +1,12 @@
+import java.util.Scanner;
+
 class Node{
-    char data;
+    String data;
+    Node parent = null;
     Node child = null;
     Node sibling = null;
 
-    Node(char data){
+    Node(String data){
         this.data = data;
 
     }
@@ -11,16 +14,97 @@ class Node{
 }
 
 class Tree{
-    static void add(Node parent, Node child){
-        if(parent.child == null)
+    static boolean isLarge(String first, String second){
+        int length;
+        if(first.length() <= second.length()){
+            length = first.length();
+            for(int i=0; i < length;i++) {
+                if (first.charAt(i) < second.charAt(i)) {
+                    return true;
+                } else if (first.charAt(i) > second.charAt(i)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }else{
+            length = second.length();
+            for(int i=0; i < length;i++){
+                if(first.charAt(i) < second.charAt(i)){
+                    return true;
+                }else if(first.charAt(i) > second.charAt(i)){
+                    return false;
+                }
+            }
+            return false;
+        }
+    }
+
+    //TODO
+    static void addSorted(Node parent, Node child){
+        if(parent.child == null){
             parent.child = child;
+            parent.child.parent = child;
+        }else{
+            Node temp = parent.child;
+            if(isLarge(temp.data, child.data)) {
+                child.sibling = parent.child.sibling;
+                parent.child.sibling = child;
+
+
+            }else{
+                parent.child = child;
+                child.sibling = temp;
+            }
+
+        }
+    }
+
+    static void add(Node parent, Node child){
+        if(parent.child == null) {
+            parent.child = child;
+            parent.child.parent = parent;
+        }
+
         else{
             Node temp = parent.child;
             while(temp.sibling != null)
                 temp = temp.sibling;
             temp.sibling = child;
+            temp.parent = parent;
         }
 
+    }
+
+
+
+    static Node delete(Node current, String path){
+        Node child = current.child;
+        Node pChild;
+
+        if(child == null)
+            return null;
+
+        if(child.data.equals(path)){
+            current.child = child.sibling;
+            return current;
+        }else{
+            pChild = child;
+            child = child.sibling;
+
+            while(child != null){
+                if(child.data.equals(path)){
+                    pChild.sibling = child.sibling;
+                    return current;
+
+                }
+                pChild = child;
+                child = child.sibling;
+
+            }
+
+        }
+        return null;
     }
 
     static void printLevel(Node node, int level){
@@ -52,7 +136,7 @@ class Tree{
 
     static void printTree(Node node, int depth){
         for(int i=0; i < depth; i++)
-            System.out.print(" ");
+            System.out.print("  ");
 
         System.out.println(node.data);
         if(node.child != null)
@@ -61,13 +145,110 @@ class Tree{
             printTree(node.sibling, depth);
 
     }
+
+    static void printChild(Node parent){
+        Node child = parent.child;
+        while(child != null) {
+            System.out.print(child.data + " ");
+            child = child.sibling;
+        }
+        System.out.println();
+
+    }
 }
 
 
 
 public class TreeList {
 
+    static int count = 0;
+
+    static boolean isEqualString(String first, String second){
+        if(first.length() != second.length())
+            return false;
+        for(int i=0; i < first.length();i++){
+            if(first.charAt(i) != second.charAt(i))
+                return false;
+
+        }
+        return true;
+    }
+
+
+
+    static void cmd_init() {
+    }
+
+    static Node cmd_mkdir(Node current, String name){
+        System.out.println(count++ + " mkdir " + name);
+        Node child = new Node(name);
+        Tree.add(current, child);
+
+ //       Tree.printTree(current, 0);
+        return current;
+    }
+
+    static Node cmd_cd(Node current, String path) {
+        System.out.println(count++ + " cd " + path);
+        if(path.equals("..")){
+            if(current.parent != null)
+                return current.parent;
+            else return null;
+        }
+        Node cdNode = current.child;
+        while(cdNode != null){
+            if(cdNode.data.equals(path))
+                return cdNode;
+            cdNode = cdNode.sibling;
+        }
+
+        return null;
+
+    }
+
+    static int cmd_ls(Node current, String path) {
+        if(path.equals("0"))
+            Tree.printChild(current);
+
+        return -1;
+
+    }
+
+    static Node cmd_rm(Node current, String path) {
+        Node child = current.child;
+        Node pChild;
+
+        if(child == null)
+            return null;
+
+        if(child.data.equals(path)){
+            current.child = child.sibling;
+            return current;
+        }else{
+            pChild = child;
+            child = child.sibling;
+
+            while(child != null){
+                if(child.data.equals(path)){
+                    pChild.sibling = child.sibling;
+                    return current;
+
+                }
+                pChild = child;
+                child = child.sibling;
+
+            }
+
+        }
+        return null;
+
+    }
+
+
+
     public static void main(String[] args) throws Exception {
+
+       /*
         Node root = new Node('A');
         Node nodeB = new Node('B');
         Node nodeC = new Node('C');
@@ -87,5 +268,51 @@ public class TreeList {
             Tree.printLevel(root,i);
         }
 
+        */
+
+        System.setIn(new java.io.FileInputStream("tree/sample_input.txt"));
+        Scanner sc = new Scanner(System.in);
+
+        int T = sc.nextInt();
+        int seed = sc.nextInt();
+        int trials = sc.nextInt();
+        cmd_init();
+        Node current;
+        Node root = new Node("/");
+        for (int test_case = 1; test_case <= T; ++test_case)
+        {
+            count = 1;
+            current = root;
+            for(int i = 0; i < trials; i++){
+                int cmd = sc.nextInt();
+                String value = sc.next();
+
+                switch (cmd) {
+                    case 1:
+                        current = cmd_mkdir(current, value);
+                        break;
+                    case 2:
+                        Node cdNode = cmd_cd(current, value);
+                        if(cdNode != null)
+                            current = cdNode;
+                        break;
+                    case 3:
+                        cmd_rm(current, value);
+                        break;
+                    case 4:
+                        cmd_ls(current, value);
+                        break;
+                    default:
+                        break;
+                }
+                Tree.printTree(root, 0);
+
+            }
+
+        }
+
+        sc.close();
     }
+
+
 }
