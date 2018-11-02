@@ -4,7 +4,8 @@ class Node{
     String data;
     Node parent = null;
     Node child = null;
-    Node sibling = null;
+    Node rs = null;
+    Node ls = null;
 
     Node(String data){
         this.data = data;
@@ -14,6 +15,17 @@ class Node{
 }
 
 class Tree{
+    static boolean strcmp(String first, String second){
+        if(first.length() != second.length())
+            return false;
+
+        for(int i=0;i < first.length(); i++){
+            if(first.charAt(i) != second.charAt(i))
+                return false;
+        }
+        return true;
+    }
+
     static boolean isLarge(String first, String second){
         int length;
         if(first.length() <= second.length()){
@@ -40,27 +52,70 @@ class Tree{
         }
     }
 
-    //TODO
-    static void addSorted(Node parent, Node child){
-        if(parent.child == null){
-            parent.child = child;
-            parent.child.parent = child;
-        }else{
-            Node temp = parent.child;
-            if(isLarge(temp.data, child.data)) {
-                child.sibling = parent.child.sibling;
-                parent.child.sibling = child;
 
-
-            }else{
-                parent.child = child;
-                child.sibling = temp;
+    static boolean isSmall(String newNode, String node){
+        if(newNode.length() >= node.length()){
+            for(int i =0;i < node.length(); i++){
+                if(newNode.charAt(i) > node.charAt(i))
+                    return false;
+                else if(newNode.charAt(i) < node.charAt(i))
+                    return true;
             }
-
+            return false;
+        }else {
+            for(int i=0; i < newNode.length(); i++){
+                if(newNode.charAt(i) > node.charAt(i))
+                    return false;
+                else if (newNode.charAt(i) < node.charAt(i))
+                    return true;
+            }
+            return true;
         }
     }
 
-    static void add(Node parent, Node child){
+    static Node addSorted(Node parent, Node newNode){
+        if(parent == null)
+            return newNode;
+
+        if(parent.child == null)
+            parent.child = newNode;
+        else{
+            if(isSmall(newNode.data, parent.child.data)){  // first
+                newNode.rs = parent.child;
+                parent.child.ls = newNode;
+                parent.child = newNode;
+
+
+            }
+            else {
+                Node temp = parent.child;
+                while (temp.rs != null) {
+                    if (isSmall(newNode.data, temp.data)) {
+
+                        newNode.ls = temp.ls;
+                        newNode.rs = temp;
+                        newNode.parent = parent;
+                        temp.ls.rs = newNode;
+                        temp.ls = newNode;
+                        break;
+                    }
+                    temp = temp.rs;
+
+                }
+                temp.rs = newNode;
+                newNode.ls = temp;
+                newNode.parent = parent;
+
+            }
+        }
+
+
+        return parent;
+    }
+
+
+
+    static Node add(Node parent, Node child){
         if(parent.child == null) {
             parent.child = child;
             parent.child.parent = parent;
@@ -68,11 +123,14 @@ class Tree{
 
         else{
             Node temp = parent.child;
-            while(temp.sibling != null)
-                temp = temp.sibling;
-            temp.sibling = child;
+            while(temp.rs != null)
+                temp = temp.rs;
+            temp.rs = child;
+            child.ls = temp;
             temp.parent = parent;
         }
+
+        return parent;
 
     }
 
@@ -85,21 +143,21 @@ class Tree{
         if(child == null)
             return null;
 
-        if(child.data.equals(path)){
-            current.child = child.sibling;
+        if(strcmp(child.data, path)){
+            current.child = child.rs;
             return current;
         }else{
             pChild = child;
-            child = child.sibling;
+            child = child.rs;
 
             while(child != null){
                 if(child.data.equals(path)){
-                    pChild.sibling = child.sibling;
+                    pChild.rs = child.rs;
                     return current;
 
                 }
                 pChild = child;
-                child = child.sibling;
+                child = child.rs;
 
             }
 
@@ -116,11 +174,11 @@ class Tree{
             if(depth == level){
                 while(tempChild != null){
                     System.out.print(tempChild.data + " ");
-                    tempChild = tempChild.sibling;
+                    tempChild = tempChild.rs;
                 }
 
-                if(tempParent.sibling != null){
-                    tempParent = tempParent.sibling;
+                if(tempParent.rs != null){
+                    tempParent = tempParent.rs;
                     tempChild = tempParent.child;
                 }else{
                     break;
@@ -141,8 +199,8 @@ class Tree{
         System.out.println(node.data);
         if(node.child != null)
             printTree(node.child, depth +1);
-        if(node.sibling != null)
-            printTree(node.sibling, depth);
+        if(node.rs != null)
+            printTree(node.rs, depth);
 
     }
 
@@ -150,7 +208,7 @@ class Tree{
         Node child = parent.child;
         while(child != null) {
             System.out.print(child.data + " ");
-            child = child.sibling;
+            child = child.rs;
         }
         System.out.println();
 
@@ -163,13 +221,13 @@ public class TreeList {
 
     static int count = 0;
 
-    static boolean isEqualString(String first, String second){
+    static boolean strcmp(String first, String second){
         if(first.length() != second.length())
             return false;
-        for(int i=0; i < first.length();i++){
+
+        for(int i=0;i < first.length(); i++){
             if(first.charAt(i) != second.charAt(i))
                 return false;
-
         }
         return true;
     }
@@ -182,24 +240,26 @@ public class TreeList {
     static Node cmd_mkdir(Node current, String name){
         System.out.println(count++ + " mkdir " + name);
         Node child = new Node(name);
-        Tree.add(current, child);
+        current = Tree.add(current, child);
+//        current = Tree.addSorted(current, child);
 
- //       Tree.printTree(current, 0);
+
+        //       Tree.printTree(current, 0);
         return current;
     }
 
     static Node cmd_cd(Node current, String path) {
         System.out.println(count++ + " cd " + path);
-        if(path.equals("..")){
+        if(strcmp(path, "..")){
             if(current.parent != null)
                 return current.parent;
             else return null;
         }
         Node cdNode = current.child;
         while(cdNode != null){
-            if(cdNode.data.equals(path))
+            if(strcmp(cdNode.data, path))
                 return cdNode;
-            cdNode = cdNode.sibling;
+            cdNode = cdNode.rs;
         }
 
         return null;
@@ -207,6 +267,7 @@ public class TreeList {
     }
 
     static int cmd_ls(Node current, String path) {
+        System.out.println(count++ + " ls " + path);
         if(path.equals("0"))
             Tree.printChild(current);
 
@@ -215,27 +276,29 @@ public class TreeList {
     }
 
     static Node cmd_rm(Node current, String path) {
-        Node child = current.child;
-        Node pChild;
 
-        if(child == null)
+        if(current.child == null)
             return null;
 
-        if(child.data.equals(path)){
-            current.child = child.sibling;
+        if(strcmp(current.child.data, path)){
+            current.child = current.child.rs;
+            current.child.ls = null;
             return current;
         }else{
-            pChild = child;
-            child = child.sibling;
+            Node temp = current.child.rs;
 
-            while(child != null){
-                if(child.data.equals(path)){
-                    pChild.sibling = child.sibling;
-                    return current;
+            while(temp != null){
+                if(strcmp(temp.data, path)){
+                    if(temp.rs != null) {
+                        temp.ls.rs = temp.rs;
+                        temp.rs.ls = temp.ls;
+                        return current;
+                    }else{
+                        temp.ls = null;
+                    }
 
                 }
-                pChild = child;
-                child = child.sibling;
+                temp = temp.rs;
 
             }
 
@@ -293,8 +356,11 @@ public class TreeList {
                         break;
                     case 2:
                         Node cdNode = cmd_cd(current, value);
-                        if(cdNode != null)
-                            current = cdNode;
+                        if(cdNode == null){
+                            System.out.println("This is root.");
+                            break;
+                        }
+                        current = cdNode;
                         break;
                     case 3:
                         cmd_rm(current, value);
@@ -308,6 +374,7 @@ public class TreeList {
                 Tree.printTree(root, 0);
 
             }
+            Tree.printLevel(root, 1);
 
         }
 
