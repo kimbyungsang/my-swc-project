@@ -26,8 +26,8 @@ class Solution
     }
 
     private static Scanner sc;
-    private static UserSolution userSolution = new UserSolution();
-
+//    private static UserSolution userSolution = new UserSolution();
+    private static UserSolution2 userSolution = new UserSolution2();
     private static int Score;
     private static int ScoreIdx;
     private static String name, number, birthday, email, memo;
@@ -148,6 +148,7 @@ class Solution
     private static void run()
     {
         int N = Integer.parseInt(sc.next());
+        System.out.println("N: " + N);
         for (int i = 0; i < N; i++)
         {
             int cmd = Integer.parseInt(sc.next());

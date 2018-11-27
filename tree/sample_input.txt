@@ -3,7 +3,6 @@
 1 selc
 1 selc2
 1 selc1
-1 selc
 2 selc
 1 sal
 2 ..
