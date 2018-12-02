@@ -1,5 +1,5 @@
 1
-0 30
+0 5
 1 selc
 1 selc2
 1 selc1
