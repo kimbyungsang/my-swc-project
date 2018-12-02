@@ -26,8 +26,8 @@ class Solution
     }
 
     private static Scanner sc;
-//    private static UserSolution userSolution = new UserSolution();
-    private static UserSolution2 userSolution = new UserSolution2();
+    private static UserSolution userSolution = new UserSolution();
+//    private static UserSolution2 userSolution = new UserSolution2();
     private static int Score;
     private static int ScoreIdx;
     private static String name, number, birthday, email, memo;

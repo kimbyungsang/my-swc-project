@@ -65,11 +65,11 @@ class Tree{
     int fc = 0;
 
     Tree parent = null;
-    Tree schild = null;
-    Tree echild = null;
+    Tree child = null;
     Tree next = null;
     Tree prev = null;
     Tree hash_next = null;
+    Tree hash_prev = null;
 
     Tree(int id){
         this.id = id;
@@ -92,7 +92,7 @@ public class Solution {
     }
 
     static void printTree(Tree root, int depth){
-        for(Tree iter = root.schild.next; iter != root.echild; iter = iter.next){
+        for(Tree iter = root.child.next; iter != null; iter = iter.next){
             printTree(iter, depth++);
         }
         System.out.println("depth: " + root.parent.id + "\t" + root.id + "\t" + root.type + "\t" + root.fs + "\t" + root.bk + "\t" + root.fc);
@@ -112,10 +112,7 @@ public class Solution {
         // 3) create root
         // 4) create dummy child
         root = new Tree(1000);
-        root.schild = new Tree(-1);
-        root.echild = new Tree(-1);
-        root.schild.next = root.echild;
-        root.echild.prev = root.schild;
+        root.child = new Tree(-1);
 
         // 5) parent dummy
         root.parent = new Tree(-1);
@@ -151,60 +148,48 @@ public class Solution {
          *
          */
 
-
-
         // create node and set fs, bk, fc
         Tree node = new Tree(id);
+        node.child = new Tree(-1);
+
+        if(fileSize == 0){
+            node.type = 0;
+        }else{
+            node.type = 1;
+            node.fs = fileSize;
+            node.bk = fileSize;
+            node.fc = 1;
+        }
 
         // get parent from hash
         Tree parent = getNode(pid);
 
         // link node to parent
         node.parent = parent;
-        node.schild = new Tree(-1);
-        node.echild = new Tree(-1);
-        node.schild.next = node.echild;
-        node.echild.prev = node.schild;
 
-        if(fileSize > 0){
-            node.type = 1;
-            node.fs = fileSize;
-            node.bk = fileSize;
-            node.fc = 1;
+        // add node to parent's child
+        node.prev = parent.child;
+        node.next = parent.child.next;
+        node.prev.next = node;
+        if(node.next != null)
+            node.next.prev = node;
 
-            for(Tree iter = node.parent; iter != null; iter = iter.parent){
+
+        // if node is file, increase fs, bk, fc to all parents;
+        if(node.type == 1)
+            for(Tree iter = node.parent; iter.id > -1; iter = iter.parent){
                 iter.fs += fileSize;
                 iter.bk += fileSize;
                 iter.fc += 1;
             }
-        }
-
-
-        // add node to parent's child
-        node.prev = parent.echild.prev;
-        node.next = parent.echild;
-        node.prev.next = node;
-        node.next.prev = node;
-
-
-        // if node is file, increase fs, bk, fc to all parents;
- //       if(node.type == 1)
- //           for(Tree iter = node.parent; iter.id > -1; iter = iter.parent){
- //               iter.fs += fileSize;
- //               iter.bk += fileSize;
- //               iter.fc += 1;
- //           }
 
         // add node to hash
-//        node.hash_prev = hash[hashing(id)];
-//       node.hash_next = hash[hashing(id)].hash_next;
-//        node.hash_prev.hash_next = node;
-//        if(node.hash_next != null)
-//            node.hash_next.hash_prev = node;
+        node.hash_prev = hash[hashing(id)];
+        node.hash_next = hash[hashing(id)].hash_next;
+        node.hash_prev.hash_next = node;
+        if(node.hash_next != null)
+            node.hash_next.hash_prev = node;
 
-        int key = hashing(id);
-        node.hash_next = hash[key].hash_next;
-        hash[key].hash_next = node;
 
         printTree(root, 0);
         fw.write(parent.fs +"\n");
@@ -226,7 +211,7 @@ public class Solution {
 
         // get child from hash
         Tree node = getNode(id);
-//        Tree old_parent = node.parent;
+        Tree old_parent = node.parent;
 
 
         //remove child from old parent
@@ -241,13 +226,14 @@ public class Solution {
 
 
         // decrease fs, bk, fc from all parent
-        for(Tree iter = node.parent; iter != null; iter = iter.parent){
+        for(Tree iter = old_parent; iter.id > -1; iter = iter.parent){
             iter.fs -= node.fs;
             iter.bk -= node.bk;
             iter.fc -= node.fc;
         }
 
         node.prev.next = node.next;
+        if(node.next != null)
         node.next.prev = node.prev;
 
         // get new parent from hash
@@ -255,16 +241,17 @@ public class Solution {
         node.parent = parent;   //**************//
 
         //add child
-        node.prev = parent.echild.prev;
-        node.next = parent.echild;
+        node.prev = parent.child;
+        node.next = parent.child.next;
         node.prev.next = node;
-        node.next.prev = node;
+        if(node.next != null)
+            node.next.prev = node;
 
 
 
         //increase fs, bk, fc
 
-        for(Tree iter = parent; iter != null; iter = iter.parent){
+        for(Tree iter = parent; iter.id > -1; iter = iter.parent){
             iter.fs += node.fs;
             iter.bk += node.bk;
             iter.fc += node.fc;
@@ -279,7 +266,7 @@ public class Solution {
 
     static void infectDFS(Tree node){
     	if(root.fc != 0 && node.fc != 0){
-    		for(Tree iter = node.schild.next; iter != node.echild; iter = iter.next){
+    		for(Tree iter = node.child.next; iter != null; iter = iter.next){
     			infectDFS(iter);
     		}
     		node.fs += (root.fs/root.fc)*node.fc;
@@ -296,7 +283,7 @@ public class Solution {
     		infectDFS(node);
     	}
 
-    	for(Tree iter = node.parent; iter != null; iter = iter.parent){
+    	for(Tree iter = node.parent; iter.id > -1; iter = iter.parent){
     		iter.fs += (root.fs/root.fc)*node.fc;
     	}
 
@@ -353,7 +340,7 @@ public class Solution {
 */
     static void recoverDFS(Tree node){
         node.fs = node.bk;
-        for(Tree iter = node.schild.next; iter != node.echild; iter = iter.next){
+        for(Tree iter = node.child.next; iter != null; iter = iter.next){
             recoverDFS(iter);
         }
     }
@@ -366,7 +353,7 @@ public class Solution {
 
         recoverDFS(node);
 
-        for(Tree iter = node.parent; iter != null; iter = iter.parent){
+        for(Tree iter = node.parent; iter.id > -1; iter = iter.parent){
             iter.fs -= size;
         }
 
@@ -408,7 +395,6 @@ public class Solution {
 
     */
 
-/*
     static void removeDFS(Tree node) {
         for(Tree iter = node.child.next; iter != null; iter = iter.next){
             removeDFS(iter);
@@ -424,7 +410,6 @@ public class Solution {
             }
         }
     }
-*/
 
 
     static int remove(int id) throws Exception {
@@ -439,30 +424,16 @@ public class Solution {
          * 5) remove node from hash
          */
 
-        Tree node = hash[hashing(id)];
-        Tree previous = hash[hashing(id)];
-
-        for(Tree iter = node.hash_next; iter != null; iter = iter.hash_next){
-            if(iter.id == id){
-                previous.hash_next = iter.hash_next;
-                node = iter;
-            }
-            previous = iter;
-        }
-
-
+        Tree node = getNode(id);
         Tree parent = node.parent;
 
-        node.prev.next = node.next;
-        node.next.prev = node.prev;
-
         // decrease fs, bk, fc
-        for(Tree iter = parent; iter != null; iter = iter.parent){
+        for(Tree iter = parent; iter.id > -1; iter = iter.parent){
             iter.fs -= node.fs;
             iter.bk -= node.bk;
             iter.fc -= node.fc;
         }
-/*
+
         //remove node from parent
         for(Tree iter = parent.child.next; iter != null; iter = iter.next){
             if(iter.id == id){
@@ -471,16 +442,16 @@ public class Solution {
                     iter.next.prev = iter.prev;
                 break;
             }
-        }*/
+        }
 
-//        removeDFS(node);
+        removeDFS(node);
 
 
         //remove node from hash
 
         printTree(root, 0);
         fw.write(node.fs +"\n");
-        return node.fs;
+        return 0;
     }
 
     static void do_test(int tc) throws Exception{

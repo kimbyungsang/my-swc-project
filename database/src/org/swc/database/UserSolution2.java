@@ -5,8 +5,9 @@ class Hash{
     long hkey;
     int idx;
     int field;
-    boolean delete = false;
+//    boolean delete = false;
     Hash next = null;
+    Hash prev = null;
 
 
     Hash(long hkey, int idx, int field){
@@ -19,7 +20,7 @@ class UserSolution2 {
 
     String[][] dbTable;
     int dbPos = 0;
-    Hash[] hsTable;
+    Hash[] hashTable;
 
     private long hashing(String str){
         long hash = 5381;
@@ -35,9 +36,10 @@ class UserSolution2 {
     void InitDB(){
         dbTable = new String[50000][5];
         dbPos = 0;
-        hsTable = new Hash[250000];
+        hashTable = new Hash[250000];
         for(int i = 0; i < 250000; i++){
-            hsTable[i] = new Hash(-1, -1, -1);
+            hashTable[i] = new Hash(-1, -1, -1);
+
         }
     }
 
@@ -45,8 +47,10 @@ class UserSolution2 {
         int key = (int)(hkey % 250000);
         Hash node = new Hash(hkey, idx, field);
 
-        node.next = hsTable[key].next;
-        hsTable[key].next = node;
+        node.next = hashTable[key].next;
+        node.prev = hashTable[key];
+        node.next.prev = node;
+        node.prev.next = node;
 
     }
 
@@ -73,12 +77,20 @@ class UserSolution2 {
         long hkey = hashing(str);
         int key = (int)(hkey % 250000);
 
+        for(Hash iter = hashTable[key].next; iter != null; iter = iter.next){
+            if(iter.hkey == hkey && iter.field == field){
+                iter.next.prev = iter.prev;
+                iter.prev.next = iter.next;
+                delCount++;
+            }
+        }
+/*
         for(Hash node = hsTable[key].next; node != null; node = node.next){
             if(node.hkey == hkey && node.field == field && !node.delete){
                 node.delete = true;
                 delCount++;
             }
-        }
+        }*/
 
         return delCount;
     }
@@ -88,7 +100,19 @@ class UserSolution2 {
         long hkey = hashing(str);
         int key = (int)(hkey % 250000);
 
-        for(Hash node = hsTable[key].next; node != null; node = node.next){
+        for(Hash iter = hashTable[key].next; iter != null; iter = iter.next){
+            if(iter.hkey == hkey && iter.field == field){
+                String changedStr = dbTable[iter.idx][changefield];
+                dbTable[iter.idx][changefield] = changestr;
+                hashAdd(hashing(changestr), iter.idx, changefield);
+
+                Delete(changefield, changedStr);
+
+            }
+            changeCount++;
+        }
+
+/*        for(Hash node = hsTable[key].next; node != null; node = node.next){
             if(node.hkey == hkey && node.field == field && !node.delete){
                 String orgin = dbTable[node.idx][changefield];
                 dbTable[node.idx][changefield] = changestr;
@@ -104,7 +128,7 @@ class UserSolution2 {
                 }
             }
             changeCount++;
-        }
+        }*/
 
 
         return changeCount;
@@ -115,13 +139,21 @@ class UserSolution2 {
         int key = (int)(hkey % 250000);
         Solution.Result result = new Solution.Result();
 
-        for(Hash node = hsTable[key].next; node != null; node = node.next) {
+        for(Hash iter = hashTable[key].next; iter != null; iter = iter.next){
+            if(iter.hkey == hkey && iter.field == field){
+                result.count++;
+                result.str = dbTable[iter.idx][returnfield];
+            }
+        }
+
+
+/*        for(Hash node = hsTable[key].next; node != null; node = node.next) {
             if(node.hkey == hkey && node.field == field && !node.delete){
                 result.count++;
                 result.str = dbTable[node.idx][returnfield];
             }
 
-        }
+        }*/
 
             return result;
     }
