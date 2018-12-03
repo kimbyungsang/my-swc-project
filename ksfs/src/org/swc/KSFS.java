@@ -42,7 +42,7 @@ public class KSFS {
                 else if (first[i] < second[i])
                     return true;
             }
-
+            return true;
         }if(first.length > second.length){
             for(int i = 0 ; i < second.length; i++){
                 if(first[i] > second[i])
@@ -50,6 +50,7 @@ public class KSFS {
                 else if (first[i] < second[i])
                     return true;
             }
+            return false;
         }
 
         return true;
@@ -60,7 +61,15 @@ public class KSFS {
         for(Tree iter = node.start.next; iter != node.end; iter = iter.next){
             printTree(iter, depth++);
         }
-        System.out.println("depth:" + depth + "\t"+ node.parent.name +"\t" + node.name);
+        System.out.println(node.parent.name +"\t" + node.name);
+    }
+
+    static void printDir(Tree node){
+        System.out.print(node.name +":\t" );
+        for(Tree iter = node.start.next; iter != node.end; iter = iter.next){
+            System.out.print(iter.name + " ");
+        }
+        System.out.println();
     }
 
 
@@ -89,7 +98,7 @@ public class KSFS {
 
 
     static Tree cmd_mkdir(Tree current, String name){
-        System.out.println(count++ + " mkdir " + name);
+        System.out.println("\n"+ count++ + " mkdir " + name);
 
         Tree node = createNode(name);
 
@@ -107,9 +116,9 @@ public class KSFS {
         }
 
         node.next = node.parent.end;
-        node.prev = node.parent.start;
-        node.parent.start.next = node;
-        node.parent.end.prev = node;
+        node.prev = node.parent.end.prev;
+        node.next.prev = node;
+        node.prev.next = node;
 
 
         return current;
@@ -117,6 +126,9 @@ public class KSFS {
 
     static Tree cmd_cd(Tree current, String path) {
         System.out.println(count++ + " cd " + path);
+
+        if(path.equals(".."))
+            return current.parent;
 
         for(Tree iter = current.start.next; iter != current.end; iter = iter.next){
             if(strcmp(iter.name, path)){
@@ -143,21 +155,45 @@ public class KSFS {
 
     }
 
-    static int cmd_ls(Tree current, String path) {
-       System.out.println(count++ + " ls " + path);
+    static Tree cmd_ls(Tree current, String path) {
+       System.out.println("\n"+ count++ + " ls " + path);
 
         if(path.equals("0")){
-
+            for(Tree iter = current.start.next; iter != current.end; iter = iter.next){
+                System.out.print(iter.name + " ");
+            }
+            System.out.println();
         }else{
+            for(Tree iter = current.start.next; iter != current.end; iter = iter.next){
+                boolean isSub = true;
+                for(int i = 0; i < path.length(); i++){
+                    if(iter.name.charAt(i) != path.charAt(i)) {
+                        isSub = false;
+                        break;
+                    }
+                }
 
+                if(isSub)
+                    System.out.print(iter.name + " ");
+            }
+            System.out.println();
         }
 
 
-        return -1;
+        return current;
 
     }
 
     static Tree cmd_rm(Tree current, String path) {
+        System.out.println("\n"+ count++ + " rm " + path);
+
+        for(Tree iter = current.start.next; iter != current.end; iter = iter.next){
+            if(strcmp(iter.name, path)){
+                iter.next.prev = iter.prev;
+                iter.prev.next = iter.next;
+
+            }
+        }
 /*
         if(current.child == null)
             return null;
@@ -185,7 +221,7 @@ public class KSFS {
             }
 
         }*/
-        return null;
+        return current;
 
     }
 
@@ -223,15 +259,15 @@ public class KSFS {
                         current = cdNode;
                         break;
                     case 3:
-                        cmd_rm(current, value);
+                        current = cmd_rm(current, value);
                         break;
                     case 4:
-                        cmd_ls(current, value);
+                        current = cmd_ls(current, value);
                         break;
                     default:
                         break;
                 }
-                printTree(root, 0);
+                printDir(current);
 
             }
             //printLevel(root, 1);
