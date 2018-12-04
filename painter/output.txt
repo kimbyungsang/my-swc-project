@@ -1,0 +1,5 @@
+5 2
+AAABB
+CCCCD
+2 5
+CA
